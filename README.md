@@ -8,10 +8,10 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
-| v6.0.0 | [`v6.0.0`](https://github.com/chainguard-actions/setup-tflint/tree/v6.0.0) | — |
-| v6.1.0 | [`v6.1.0`](https://github.com/chainguard-actions/setup-tflint/tree/v6.1.0) | — |
-| v6.2.1 | [`v6.2.1`](https://github.com/chainguard-actions/setup-tflint/tree/v6.2.1) | — |
-| v6.2.2 | [`v6.2.2`](https://github.com/chainguard-actions/setup-tflint/tree/v6.2.2) | — |
+| v6.0.0 | [`v6.0.0`](https://github.com/chainguard-actions/terraform-linters--setup-tflint/tree/v6.0.0) | — |
+| v6.1.0 | [`v6.1.0`](https://github.com/chainguard-actions/terraform-linters--setup-tflint/tree/v6.1.0) | — |
+| v6.2.1 | [`v6.2.1`](https://github.com/chainguard-actions/terraform-linters--setup-tflint/tree/v6.2.1) | — |
+| v6.2.2 | [`v6.2.2`](https://github.com/chainguard-actions/terraform-linters--setup-tflint/tree/v6.2.2) | — |
 
 ## Privacy
 
