@@ -1,0 +1,47 @@
+name: Test tflint version from file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create .tool-versions file
+        run: |
+          echo "tflint 0.50.3" > /tmp/tflint-tool-versions
+          cat /tmp/tflint-tool-versions
+      - id: setup
+        uses: .
+        with:
+          tflint_version_file: /tmp/tflint-tool-versions
+      - name: Assert tflint is installed
+        run: |
+          echo "Checking tflint binary..."
+          if ! command -v tflint &>/dev/null; then
+            echo "FAIL: tflint binary not found in PATH"
+            exit 1
+          fi
+          echo "PASS: tflint is installed"
+      - name: Assert tflint version output matches expected
+        env:
+          ACTUAL: ${{ steps.setup.outputs.tflint-version }}
+        run: |
+          echo "actual tflint-version: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: tflint-version output is empty"
+            exit 1
+          fi
+          if [[ "$ACTUAL" != *"0.50.3"* ]]; then
+            echo "FAIL: expected version to contain '0.50.3', got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS: tflint-version output is '$ACTUAL'"
+      - name: Assert tflint version matches expected
+        run: |
+          VERSION=$(tflint --version 2>&1)
+          echo "tflint --version output: $VERSION"
+          if [[ "$VERSION" != *"0.50.3"* ]]; then
+            echo "FAIL: expected version to contain '0.50.3', got '$VERSION'"
+            exit 1
+          fi
+          echo "PASS: tflint version matches version file"

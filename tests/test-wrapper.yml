@@ -1,0 +1,52 @@
+name: Test tflint wrapper mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          tflint_version: v0.50.3
+          tflint_wrapper: 'true'
+      - name: Assert tflint is installed
+        run: |
+          echo "Checking tflint binary..."
+          if ! command -v tflint &>/dev/null; then
+            echo "FAIL: tflint binary not found in PATH"
+            exit 1
+          fi
+          echo "PASS: tflint is installed"
+      - id: tflint_run
+        name: Run tflint --version via wrapper
+        run: tflint --version
+      - name: Assert exitcode output is set
+        env:
+          ACTUAL: ${{ steps.tflint_run.outputs.exitcode }}
+        run: |
+          echo "actual exitcode: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: exitcode output is empty"
+            exit 1
+          fi
+          if [ "$ACTUAL" != "0" ]; then
+            echo "FAIL: expected exitcode '0', got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS: exitcode is '0'"
+      - name: Assert stdout output is set
+        env:
+          ACTUAL: ${{ steps.tflint_run.outputs.stdout }}
+        run: |
+          echo "actual stdout: $ACTUAL"
+          if [ -z "$ACTUAL" ]; then
+            echo "FAIL: stdout output is empty"
+            exit 1
+          fi
+          if [[ "$ACTUAL" != *"TFLint"* ]]; then
+            echo "FAIL: expected stdout to contain 'TFLint', got '$ACTUAL'"
+            exit 1
+          fi
+          echo "PASS: stdout contains TFLint version info"
