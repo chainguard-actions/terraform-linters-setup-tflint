@@ -1,44 +1,52 @@
-name: Test specific tflint version
+name: Test specific version installation
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      RUNNER_TOOL_CACHE: /tmp/hostedtoolcache
+      RUNNER_TEMP: /tmp/runner-temp
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Prepare runner directories
+        run: |
+          mkdir -p "$RUNNER_TOOL_CACHE"
+          mkdir -p "$RUNNER_TEMP"
+
       - id: setup
+        name: Setup TFLint v0.50.3
         uses: .
         with:
           tflint_version: v0.50.3
-      - name: Assert tflint is installed
+          github_token: ${{ github.token }}
+
+      - name: Assert tflint is on PATH
         run: |
-          echo "Checking tflint binary..."
-          if ! command -v tflint &>/dev/null; then
-            echo "FAIL: tflint binary not found in PATH"
+          if ! which tflint; then
+            echo "FAIL: tflint not found on PATH"
             exit 1
           fi
-          echo "PASS: tflint is installed"
-      - name: Assert tflint version output matches expected
+          echo "PASS: tflint found on PATH"
+
+      - name: Assert correct version installed
+        run: |
+          VERSION=$(tflint --version | head -1)
+          echo "version output: $VERSION"
+          if ! echo "$VERSION" | grep -q "0.50.3"; then
+            echo "FAIL: expected version 0.50.3 but got: $VERSION"
+            exit 1
+          fi
+          echo "PASS: correct version 0.50.3 installed"
+
+      - name: Assert tflint-version output matches
         env:
           ACTUAL: ${{ steps.setup.outputs.tflint-version }}
         run: |
-          echo "actual tflint-version: $ACTUAL"
-          if [ -z "$ACTUAL" ]; then
-            echo "FAIL: tflint-version output is empty"
-            exit 1
-          fi
-          # Check that the version contains 0.50.3
-          if [[ "$ACTUAL" != *"0.50.3"* ]]; then
-            echo "FAIL: expected version to contain '0.50.3', got '$ACTUAL'"
+          echo "actual: $ACTUAL"
+          if ! echo "$ACTUAL" | grep -q "0.50.3"; then
+            echo "FAIL: expected tflint-version output to contain '0.50.3', got: $ACTUAL"
             exit 1
           fi
           echo "PASS: tflint-version output is '$ACTUAL'"
-      - name: Assert tflint version matches expected
-        run: |
-          VERSION=$(tflint --version 2>&1)
-          echo "tflint --version output: $VERSION"
-          if [[ "$VERSION" != *"0.50.3"* ]]; then
-            echo "FAIL: expected version to contain '0.50.3', got '$VERSION'"
-            exit 1
-          fi
-          echo "PASS: tflint version is correct"

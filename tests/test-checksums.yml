@@ -6,26 +6,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      # Fetch the real checksum for tflint v0.50.3 linux_amd64 before installing
-      - name: Get tflint checksum
+      - name: Get checksum for tflint v0.50.3
         id: get-checksum
         run: |
-          CHECKSUM=$(curl -fsSL https://github.com/terraform-linters/tflint/releases/download/v0.50.3/checksums.txt \
-            | grep 'tflint_linux_amd64.zip' | awk '{print $1}')
+          # Download the checksums file for tflint v0.50.3 and extract the linux_amd64 checksum
+          CHECKSUM=$(curl -sfL https://github.com/terraform-linters/tflint/releases/download/v0.50.3/checksums.txt \
+            | grep 'linux_amd64' | awk '{print $1}')
           echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
-          echo "Fetched checksum: $CHECKSUM"
+          echo "Checksum: $CHECKSUM"
       - id: action
         uses: .
         with:
           tflint_version: v0.50.3
           checksums: ${{ steps.get-checksum.outputs.checksum }}
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
       - name: Assert tflint is installed
         run: |
           tflint --version
           echo "PASS: tflint is installed"
-      - name: Assert tflint-version output is set
+      - name: Assert tflint-version output
         env:
           ACTUAL: ${{ steps.action.outputs.tflint-version }}
         run: |
@@ -34,4 +32,7 @@ jobs:
             echo "FAIL: tflint-version output is empty"
             exit 1
           fi
-          echo "PASS"
+          if echo "$ACTUAL" | grep -qv "0.50.3"; then
+            echo "INFO: version is $ACTUAL"
+          fi
+          echo "PASS: tflint-version output is set"

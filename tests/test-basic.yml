@@ -1,38 +1,51 @@
-name: Test basic usage - latest tflint
+name: Test basic usage - install latest tflint
 on:
   workflow_dispatch:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      RUNNER_TOOL_CACHE: /tmp/hostedtoolcache
+      RUNNER_TEMP: /tmp/runner-temp
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Prepare runner directories
+        run: |
+          mkdir -p "$RUNNER_TOOL_CACHE"
+          mkdir -p "$RUNNER_TEMP"
+
       - id: setup
+        name: Setup TFLint (latest)
         uses: .
         with:
           tflint_version: latest
-      - name: Assert tflint is installed
+          github_token: ${{ github.token }}
+
+      - name: Assert tflint is on PATH
         run: |
-          echo "Checking tflint binary..."
-          if ! command -v tflint &>/dev/null; then
-            echo "FAIL: tflint binary not found in PATH"
+          if ! which tflint; then
+            echo "FAIL: tflint not found on PATH"
             exit 1
           fi
-          echo "PASS: tflint is installed"
-      - name: Assert tflint version output is set
+          echo "PASS: tflint found on PATH"
+
+      - name: Assert tflint runs
+        run: |
+          tflint --version
+          if [ $? -ne 0 ]; then
+            echo "FAIL: tflint --version failed"
+            exit 1
+          fi
+          echo "PASS: tflint --version succeeded"
+
+      - name: Assert tflint-version output is set
         env:
           ACTUAL: ${{ steps.setup.outputs.tflint-version }}
         run: |
-          echo "actual tflint-version: $ACTUAL"
+          echo "actual: $ACTUAL"
           if [ -z "$ACTUAL" ]; then
             echo "FAIL: tflint-version output is empty"
             exit 1
           fi
           echo "PASS: tflint-version output is '$ACTUAL'"
-      - name: Assert tflint runs successfully
-        run: |
-          tflint --version
-          if [ $? -ne 0 ]; then
-            echo "FAIL: tflint --version exited with non-zero"
-            exit 1
-          fi
-          echo "PASS: tflint --version succeeded"
