@@ -10,7 +10,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 |---------|-----|-----------------|
 | v6 | [`v6`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6) | [`6e1e064`](https://github.com/terraform-linters/setup-tflint/commit/6e1e0642c0289bd619021bf6b34e3c08ed1e005a) |
 | v6.0.0 | [`v6.0.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.0.0) | — |
-| v6.1.0 | [`v6.1.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.1.0) | — |
+| v6.1.0 | [`v6.1.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.1.0) | [`a8a2cbd`](https://github.com/terraform-linters/setup-tflint/commit/a8a2cbdfb17397afadcc4fb3fcd64fdb215f0f9f) |
 | v6.2.1 | [`v6.2.1`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2.1) | — |
 | v6.2.2 | [`v6.2.2`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2.2) | — |
 | v6.3 | [`v6.3`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.3) | [`6e1e064`](https://github.com/terraform-linters/setup-tflint/commit/6e1e0642c0289bd619021bf6b34e3c08ed1e005a) |
