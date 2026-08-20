@@ -8,10 +8,11 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
-| v6 | [`v6`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6) | [`a8a2cbd`](https://github.com/terraform-linters/setup-tflint/commit/a8a2cbdfb17397afadcc4fb3fcd64fdb215f0f9f) |
-| v6.0.0 | [`v6.0.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.0.0) | — |
+| v6 | [`v6`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6) | [`acd1575`](https://github.com/terraform-linters/setup-tflint/commit/acd1575d3c037258ce5b2dd01379dc49ce24c6b7) |
+| v6.0.0 | [`v6.0.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.0.0) | [`115085c`](https://github.com/terraform-linters/setup-tflint/commit/115085cc23c5f5eeebad58ba418ec14e88c7a431) |
 | v6.1 | [`v6.1`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.1) | [`a8a2cbd`](https://github.com/terraform-linters/setup-tflint/commit/a8a2cbdfb17397afadcc4fb3fcd64fdb215f0f9f) |
 | v6.1.0 | [`v6.1.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.1.0) | [`a8a2cbd`](https://github.com/terraform-linters/setup-tflint/commit/a8a2cbdfb17397afadcc4fb3fcd64fdb215f0f9f) |
+| v6.2 | [`v6.2`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2) | [`acd1575`](https://github.com/terraform-linters/setup-tflint/commit/acd1575d3c037258ce5b2dd01379dc49ce24c6b7) |
 | v6.2.0 | [`v6.2.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2.0) | [`acd1575`](https://github.com/terraform-linters/setup-tflint/commit/acd1575d3c037258ce5b2dd01379dc49ce24c6b7) |
 | v6.2.1 | [`v6.2.1`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2.1) | — |
 | v6.2.2 | [`v6.2.2`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2.2) | — |
