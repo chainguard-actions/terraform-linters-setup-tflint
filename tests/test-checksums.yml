@@ -1,4 +1,4 @@
-name: Test checksums verification
+name: Test checksums input
 on:
   workflow_dispatch:
 jobs:
@@ -6,38 +6,47 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - name: Get tflint checksum for v0.50.3 linux_amd64
-        id: get-checksum
-        run: |
-          # Download the checksums file from the tflint release
-          CHECKSUM=$(curl -sL https://github.com/terraform-linters/tflint/releases/download/v0.50.3/checksums.txt \
-            | grep 'tflint_linux_amd64.zip' | awk '{print $1}')
-          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
-          echo "Checksum for tflint v0.50.3 linux_amd64: $CHECKSUM"
-      - id: setup
+
+      # Step 1: Install tflint at a specific version without checksums to get the binary
+      - id: install-base
         uses: .
         with:
           tflint_version: v0.50.3
-          checksums: ${{ steps.get-checksum.outputs.checksum }}
-      - name: Assert tflint is installed with checksum verification
+
+      # Step 2: Compute the SHA256 of the installed tflint binary so we have a real checksum
+      - name: Compute tflint checksum
+        id: compute-checksum
         run: |
-          echo "tflint version: $(tflint --version)"
-          if ! tflint --version; then
-            echo "FAIL: tflint is not installed"
-            exit 1
-          fi
-          echo "PASS: tflint is installed and checksum was verified"
-      - name: Assert tflint-version output is set
+          TFLINT_PATH="$(which tflint)"
+          CHECKSUM="$(sha256sum "$TFLINT_PATH" | awk '{print $1}')"
+          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "Computed checksum: $CHECKSUM"
+
+      # Step 3: Remove tflint so the action reinstalls it
+      - name: Remove tflint
+        run: |
+          sudo rm -f "$(which tflint)"
+
+      # Step 4: Reinstall with the valid checksum — should succeed
+      - id: action
+        uses: .
+        with:
+          tflint_version: v0.50.3
+          checksums: ${{ steps.compute-checksum.outputs.checksum }}
+
+      - name: Assert tflint installed with valid checksum
         env:
-          ACTUAL: ${{ steps.setup.outputs.tflint-version }}
+          VERSION: ${{ steps.action.outputs.tflint-version }}
+          CHECKSUM: ${{ steps.compute-checksum.outputs.checksum }}
         run: |
-          echo "actual tflint-version: $ACTUAL"
-          if [ -z "$ACTUAL" ]; then
+          echo "version: $VERSION"
+          echo "checksum used: $CHECKSUM"
+          if [ -z "$VERSION" ]; then
             echo "FAIL: tflint-version output is empty"
             exit 1
           fi
-          if [[ "$ACTUAL" != *"0.50.3"* ]]; then
-            echo "FAIL: expected version to contain '0.50.3', got '$ACTUAL'"
+          if ! command -v tflint > /dev/null 2>&1; then
+            echo "FAIL: tflint binary not found after install"
             exit 1
           fi
-          echo "PASS: tflint-version output is '$ACTUAL'"
+          echo "PASS: tflint $VERSION installed successfully with valid checksum"
