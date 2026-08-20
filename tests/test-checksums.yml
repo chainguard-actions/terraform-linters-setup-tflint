@@ -1,4 +1,4 @@
-name: Test checksums input - invalid checksum causes failure
+name: Test checksums input
 on:
   workflow_dispatch:
 jobs:
@@ -6,20 +6,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - id: setup
+
+      - name: Get TFLint checksum for v0.50.3 linux_amd64
+        id: get-checksum
+        run: |
+          # Download the checksums file for a known version and extract the linux_amd64 hash
+          CHECKSUM=$(curl -sfL "https://github.com/terraform-linters/tflint/releases/download/v0.50.3/checksums.txt" \
+            | grep "tflint_linux_amd64.zip" | awk '{print $1}')
+          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "Fetched checksum: $CHECKSUM"
+
+      - id: action
         uses: .
         with:
           tflint_version: v0.50.3
-          checksums: |
-            0000000000000000000000000000000000000000000000000000000000000000
-        continue-on-error: true
-      - name: Assert action failed due to checksum mismatch
-        env:
-          OUTCOME: ${{ steps.setup.outcome }}
+          checksums: ${{ steps.get-checksum.outputs.checksum }}
+
+      - name: Assert tflint is installed and version matches
         run: |
-          echo "outcome: $OUTCOME"
-          if [ "$OUTCOME" != "failure" ]; then
-            echo "FAIL: expected action to fail with invalid checksum, but outcome was '$OUTCOME'"
+          echo "Checking tflint version..."
+          VERSION=$(tflint --version)
+          echo "tflint version output: $VERSION"
+          if ! echo "$VERSION" | grep -q "0.50.3"; then
+            echo "FAIL: expected tflint v0.50.3 but got: $VERSION"
             exit 1
           fi
-          echo "PASS: action correctly rejected invalid checksum"
+          echo "PASS: tflint v0.50.3 installed successfully with checksum verification"

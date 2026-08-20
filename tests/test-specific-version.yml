@@ -10,12 +10,22 @@ jobs:
         uses: .
         with:
           tflint_version: v0.50.3
-      - name: Assert tflint version matches expected
+      - name: Assert tflint is installed
         run: |
-          INSTALLED_VERSION=$(tflint --version | head -1 | grep -oP 'v\d+\.\d+\.\d+')
-          echo "installed version: $INSTALLED_VERSION"
-          if [ "$INSTALLED_VERSION" != "v0.50.3" ]; then
-            echo "FAIL: expected v0.50.3 but got $INSTALLED_VERSION"
+          echo "Checking tflint is on PATH..."
+          which tflint
+          if [ $? -ne 0 ]; then
+            echo "FAIL: tflint not found on PATH"
             exit 1
           fi
-          echo "PASS: tflint version is v0.50.3"
+          echo "PASS: tflint found on PATH"
+      - name: Assert tflint version matches requested version
+        run: |
+          VERSION_OUTPUT=$(tflint --version)
+          echo "tflint version output: $VERSION_OUTPUT"
+          if echo "$VERSION_OUTPUT" | grep -q "0.50.3"; then
+            echo "PASS: tflint version matches v0.50.3"
+          else
+            echo "FAIL: expected version 0.50.3 but got: $VERSION_OUTPUT"
+            exit 1
+          fi
