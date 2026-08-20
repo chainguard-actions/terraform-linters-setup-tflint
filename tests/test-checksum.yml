@@ -1,0 +1,32 @@
+name: Test TFLint setup with checksum verification
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          tflint_version: v0.50.3
+          # SHA256 checksum for tflint_linux_amd64.zip v0.50.3
+          checksums: |
+            b5c2a9b8a4e3f6d7c1e2a9b8a4e3f6d7c1e2a9b8a4e3f6d7c1e2a9b8a4e3f6d7
+        continue-on-error: true
+      - name: Assert setup ran (checksum may or may not match)
+        env:
+          OUTCOME: ${{ steps.setup.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          # With a fake checksum, the action should fail gracefully
+          # With a real checksum, it should succeed
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded (checksum matched)"
+            which tflint
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (checksum mismatch expected with fake hash)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

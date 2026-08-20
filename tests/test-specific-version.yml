@@ -1,4 +1,4 @@
-name: Test specific tflint version
+name: Test TFLint setup with specific version
 on:
   workflow_dispatch:
 jobs:
@@ -10,13 +10,21 @@ jobs:
         uses: .
         with:
           tflint_version: v0.50.3
-          github_token: ${{ github.token }}
-      - name: Assert tflint version matches
+      - name: Assert tflint is installed
         run: |
-          INSTALLED=$(tflint --version | head -1)
-          echo "installed: $INSTALLED"
-          if ! echo "$INSTALLED" | grep -q "0.50.3"; then
-            echo "FAIL: expected version 0.50.3 but got: $INSTALLED"
+          which tflint
+          if [ $? -ne 0 ]; then
+            echo "FAIL: tflint not found on PATH"
             exit 1
           fi
-          echo "PASS: tflint version 0.50.3 is installed"
+          echo "PASS: tflint found at $(which tflint)"
+      - name: Assert correct version is installed
+        run: |
+          VERSION_OUTPUT=$(tflint --version)
+          echo "tflint version output: $VERSION_OUTPUT"
+          if echo "$VERSION_OUTPUT" | grep -q "0.50.3"; then
+            echo "PASS: correct version 0.50.3 installed"
+          else
+            echo "FAIL: expected version 0.50.3 but got: $VERSION_OUTPUT"
+            exit 1
+          fi
