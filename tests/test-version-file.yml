@@ -1,0 +1,40 @@
+name: Test tflint version from file
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Verify fixture version file exists
+        run: |
+          cat "$GITHUB_WORKSPACE/tests/fixtures/.tool-versions"
+          echo "PASS: fixture file found"
+      - id: setup
+        uses: .
+        with:
+          tflint_version: latest
+          tflint_version_file: tests/fixtures/.tool-versions
+      - name: Assert tflint-version output matches version from file
+        env:
+          TFLINT_VERSION: ${{ steps.setup.outputs.tflint-version }}
+        run: |
+          echo "tflint-version: $TFLINT_VERSION"
+          if [ -z "$TFLINT_VERSION" ]; then
+            echo "FAIL: tflint-version output is empty"
+            exit 1
+          fi
+          if [[ "$TFLINT_VERSION" != *"0.50.3"* ]]; then
+            echo "FAIL: expected version containing '0.50.3' from version file, got '$TFLINT_VERSION'"
+            exit 1
+          fi
+          echo "PASS: tflint-version '$TFLINT_VERSION' matches version file"
+      - name: Assert tflint binary reports correct version
+        run: |
+          VERSION_OUTPUT=$(tflint --version)
+          echo "tflint --version output: $VERSION_OUTPUT"
+          if [[ "$VERSION_OUTPUT" != *"0.50.3"* ]]; then
+            echo "FAIL: expected version output to contain '0.50.3'"
+            exit 1
+          fi
+          echo "PASS: tflint reports correct version from version file"

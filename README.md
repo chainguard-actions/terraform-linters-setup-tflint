@@ -1,24 +1,237 @@
-# terraform-linters/setup-tflint
+# Setup TFLint Action
 
-Sets up tflint CLI in your GitHub Actions workflow
+A GitHub action that installs a Terraform linter [TFLint](https://github.com/terraform-linters/tflint) executable in the PATH.
 
-Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/terraform-linters/setup-tflint](https://github.com/terraform-linters/setup-tflint).
+## Inputs
 
-## Versions
+All inputs are optional, but may include a default where specified.
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v6 | [`v6`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6) | [`4cb9fee`](https://github.com/terraform-linters/setup-tflint/commit/4cb9feea73331a35b422df102992a03a44a3bb33) |
-| v6.0 | [`v6.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.0) | [`115085c`](https://github.com/terraform-linters/setup-tflint/commit/115085cc23c5f5eeebad58ba418ec14e88c7a431) |
-| v6.0.0 | [`v6.0.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.0.0) | [`115085c`](https://github.com/terraform-linters/setup-tflint/commit/115085cc23c5f5eeebad58ba418ec14e88c7a431) |
-| v6.1 | [`v6.1`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.1) | [`a8a2cbd`](https://github.com/terraform-linters/setup-tflint/commit/a8a2cbdfb17397afadcc4fb3fcd64fdb215f0f9f) |
-| v6.1.0 | [`v6.1.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.1.0) | [`a8a2cbd`](https://github.com/terraform-linters/setup-tflint/commit/a8a2cbdfb17397afadcc4fb3fcd64fdb215f0f9f) |
-| v6.2 | [`v6.2`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2) | [`4cb9fee`](https://github.com/terraform-linters/setup-tflint/commit/4cb9feea73331a35b422df102992a03a44a3bb33) |
-| v6.2.0 | [`v6.2.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2.0) | [`acd1575`](https://github.com/terraform-linters/setup-tflint/commit/acd1575d3c037258ce5b2dd01379dc49ce24c6b7) |
-| v6.2.1 | [`v6.2.1`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2.1) | [`4cb9fee`](https://github.com/terraform-linters/setup-tflint/commit/4cb9feea73331a35b422df102992a03a44a3bb33) |
-| v6.2.2 | [`v6.2.2`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.2.2) | [`b480b8f`](https://github.com/terraform-linters/setup-tflint/commit/b480b8fcdaa6f2c577f8e4fa799e89e756bb7c93) |
-| v6.3 | [`v6.3`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.3) | [`6e1e064`](https://github.com/terraform-linters/setup-tflint/commit/6e1e0642c0289bd619021bf6b34e3c08ed1e005a) |
-| v6.3.0 | [`v6.3.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.3.0) | [`6e1e064`](https://github.com/terraform-linters/setup-tflint/commit/6e1e0642c0289bd619021bf6b34e3c08ed1e005a) |
+### `tflint_version`
+
+The version of TFLint which will be installed. See [TFLint releases page](https://github.com/terraform-linters/tflint/releases) for valid versions.
+
+If version is `"latest"`, the action will get the latest version number using [Octokit](https://octokit.github.io/rest.js/).
+
+Default: `"latest"`
+
+### `tflint_version_file`
+
+Path to a file containing the TFLint version to install, so the version can live alongside your other tooling pins instead of being hardcoded in the workflow.
+
+Two formats are supported:
+
+- An [asdf](https://asdf-vm.com/) / [mise](https://mise.jdx.dev/) `.tool-versions` file — the version is read from its `tflint <version>` line (other tools in the file are ignored).
+- A plain version file whose entire contents are a single version (e.g. `0.52.0` or `v0.52.0`).
+
+The version may be written with or without a leading `v`.
+
+This input is used only when `tflint_version` is unset or `latest`. If `tflint_version` is set to an explicit version, it takes precedence and `tflint_version_file` is ignored.
+
+```yaml
+- uses: terraform-linters/setup-tflint@v6
+  with:
+    tflint_version_file: .tool-versions
+```
+
+### `checksums`
+
+A newline-delimited list of valid checksums (SHA256 hashes) for the downloaded TFLint binary. When set, the action will verify that the binary matches one of these checksums before proceeding.
+
+This ensures that the downloaded binary for a given version is a known build. If your job runs in multiple operating systems or architectures, include appropriate checksums for all of them.
+
+**Note:** Checksums ensure _immutability_, but do not verify integrity. To prove that checksums come from a known build in TFLint's official repository, use [GitHub’s Artifact Attestations](https://github.com/terraform-linters/tflint?tab=readme-ov-file#github-cli-recommended) or [cosign](https://github.com/terraform-linters/tflint?tab=readme-ov-file#cosign).
+
+
+### `github_token`
+
+Used to authenticate requests to the GitHub API to obtain release data from the TFLint repository. Authenticating will increase the [API rate limit](https://developer.github.com/v3/#rate-limiting). Any valid token is supported. No permissions are required.
+
+Default: `${{ github.server_url == 'https://github.com' && github.token || '' }}`
+
+GitHub Enterprise Server will make requests to github.com anonymously by default. To authenticate these requests, you must issue a token from github.com and pass it explicitly.
+
+### `tflint_wrapper`
+
+Installs a wrapper script to wrap subsequent calls to `tflint` and expose `stdout`, `stderr`, and `exitcode` outputs.
+
+Default: `"false"`
+
+### `cache`
+
+Enable caching of TFLint plugins. When enabled, the action will cache the plugin directory and restore it on subsequent runs based on the hash of your TFLint configuration file(s).
+
+Default: `"false"`
+
+### `tflint_config_path`
+
+Glob pattern for TFLint configuration file(s) used to generate the cache key. All matching files will be hashed together to determine cache validity. Supports glob patterns for monorepo setups.
+
+Default: `".tflint.hcl"`
+
+### `plugin_dir`
+
+Directory where TFLint plugins are installed. See [TFLint plugin configuration](https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/config.md#plugin-directory) for details.
+
+Can also be set via `TFLINT_PLUGIN_DIR` environment variable.
+
+Default: `"~/.tflint.d/plugins"`
+
+## Outputs
+
+The following outputs are available when the `tflint_wrapper` input is enabled:
+
+- `stdout` - The output (stdout) produced by the tflint command.
+- `stderr` - The error output (stderr) produced by the tflint command.
+- `exitcode` - The exit code produced by the tflint command.
+
+## Usage
+
+```yaml
+name: Lint
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  tflint:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+    - uses: actions/checkout@v4
+      name: Checkout source code
+
+    - uses: terraform-linters/setup-tflint@v6
+      name: Setup TFLint
+      with:
+        tflint_version: v0.52.0
+        cache: true
+
+    - name: Show version
+      run: tflint --version
+
+    - name: Init TFLint
+      run: tflint --init
+      env:
+        # https://github.com/terraform-linters/tflint/blob/master/docs/user-guide/plugins.md#avoiding-rate-limiting
+        GITHUB_TOKEN: ${{ github.token }}
+
+    - name: Run TFLint
+      run: tflint -f compact
+```
+
+### Latest Release
+
+```yaml
+- uses: terraform-linters/setup-tflint@v6
+```
+or specify it explicitly as
+```yaml
+- uses: terraform-linters/setup-tflint@v6
+  with:
+    tflint_version: latest
+```
+
+### Using Custom GitHub Token
+
+```yaml
+- uses: terraform-linters/setup-tflint@v6
+  with:
+    github_token: ${{ secrets.MY_CUSTOM_GITHUB_TOKEN }}
+```
+
+### Loading Shared Configuration
+
+```yaml
+- uses: terraform-linters/setup-tflint@v6
+- uses: terraform-linters/tflint-load-config-action@v1
+  with:
+    source-repo: me/tflint-config
+- run: tflint -f compact
+```
+
+### Wrapper
+
+```yaml
+- uses: terraform-linters/setup-tflint@v6
+  with:
+    tflint_wrapper: true
+
+- id: tflint
+  run: tflint -f compact
+
+- if: always()
+  run: echo ${{ steps.tflint.outputs.stdout }}
+```
+
+### Plugin Caching
+
+```yaml
+- uses: terraform-linters/setup-tflint@v6
+  with:
+    cache: true
+
+- run: tflint --init
+  env:
+    GITHUB_TOKEN: ${{ github.token }}
+
+- run: tflint -f compact
+```
+
+For monorepos with multiple TFLint configurations:
+
+```yaml
+- uses: terraform-linters/setup-tflint@v6
+  with:
+    cache: true
+    tflint_config_path: '**/.tflint.hcl'
+
+- run: tflint --init
+  env:
+    GITHUB_TOKEN: ${{ github.token }}
+
+- run: tflint -f compact
+```
+
+### Checks
+
+This action supports [Problem Matchers](https://github.com/actions/toolkit/blob/main/docs/problem-matchers.md) for `--format compact`. You can see annotations in pull requests when TFLint prints issues with the `compact` format.
+
+![annotations](annotations.png)
+
+## Releasing
+
+`master` does not contain the built `dist/` bundle. The
+[`Release`](.github/workflows/release.yml) workflow builds it, tags it, and
+publishes the GitHub Release.
+
+Run the workflow from the Actions tab (or with `gh`). Pass an explicit version
+or an increment (`major`/`minor`/`patch`); an increment is computed from the
+latest release tag:
+
+```sh
+gh workflow run release.yml -f version=minor
+gh workflow run release.yml -f version=v6.4.0
+```
+
+The workflow checks out `master`, sets `package.json` to the release version,
+runs `npm run build`, and commits the bump and `dist/` onto a build commit. It
+creates the release tag at that commit and publishes the release as the last
+step, so the tag is never moved afterward. This keeps the release
+[immutable](https://docs.github.com/en/actions/how-tos/create-and-publish-actions/using-immutable-releases-and-tags-to-manage-your-actions-releases):
+once published, GitHub locks the release tag to its commit.
+
+The bump and `dist/` live on the release tag, not on `master`. CI does not push
+to `master`, and an increment reads the latest release tag to compute the next
+version.
+
+The floating `vMAJOR` and `vMAJOR.MINOR` tags carry no release, so the workflow
+repoints them to the build commit after publishing. Consumers pinning `@v6` are
+unaffected.
 
 ## Privacy
 

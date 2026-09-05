@@ -1,0 +1,47 @@
+name: Test tflint wrapper mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - id: setup
+        uses: .
+        with:
+          tflint_version: v0.50.3
+          tflint_wrapper: 'true'
+      - name: Assert tflint-version output is set
+        env:
+          TFLINT_VERSION: ${{ steps.setup.outputs.tflint-version }}
+        run: |
+          echo "tflint-version: $TFLINT_VERSION"
+          if [ -z "$TFLINT_VERSION" ]; then
+            echo "FAIL: tflint-version output is empty"
+            exit 1
+          fi
+          echo "PASS: tflint-version is '$TFLINT_VERSION'"
+      - name: Run tflint via wrapper (expect it to run and capture outputs)
+        id: tflint
+        # Run tflint --version which always succeeds; wrapper captures stdout/stderr/exitcode
+        run: tflint --version
+      - name: Assert wrapper captures stdout output
+        env:
+          STDOUT: ${{ steps.tflint.outputs.stdout }}
+          EXITCODE: ${{ steps.tflint.outputs.exitcode }}
+        run: |
+          echo "stdout: $STDOUT"
+          echo "exitcode: $EXITCODE"
+          if [ -z "$STDOUT" ]; then
+            echo "FAIL: wrapper stdout output is empty"
+            exit 1
+          fi
+          if [[ "$STDOUT" != *"TFLint"* ]]; then
+            echo "FAIL: expected stdout to contain 'TFLint', got: $STDOUT"
+            exit 1
+          fi
+          if [ "$EXITCODE" != "0" ]; then
+            echo "FAIL: expected exitcode 0, got '$EXITCODE'"
+            exit 1
+          fi
+          echo "PASS: wrapper captured stdout and exitcode correctly"

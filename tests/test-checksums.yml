@@ -1,0 +1,43 @@
+name: Test checksums input
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Get checksum for tflint v0.50.3 linux_amd64
+        id: get-checksum
+        run: |
+          CHECKSUMS_URL="https://github.com/terraform-linters/tflint/releases/download/v0.50.3/checksums.txt"
+          CHECKSUM=$(curl -sfL "$CHECKSUMS_URL" | grep 'tflint_linux_amd64.zip' | awk '{print $1}')
+          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
+          echo "Got checksum: $CHECKSUM"
+
+      - id: action
+        uses: .
+        with:
+          tflint_version: v0.50.3
+          checksums: ${{ steps.get-checksum.outputs.checksum }}
+
+      - name: Assert tflint version output
+        env:
+          TFLINT_VERSION: ${{ steps.action.outputs.tflint-version }}
+        run: |
+          echo "tflint-version: $TFLINT_VERSION"
+          if [ -z "$TFLINT_VERSION" ]; then
+            echo "FAIL: tflint-version output is empty"
+            exit 1
+          fi
+          echo "PASS: tflint-version is set to $TFLINT_VERSION"
+
+      - name: Assert tflint binary is available
+        run: |
+          if ! command -v tflint &>/dev/null; then
+            echo "FAIL: tflint binary not found in PATH"
+            exit 1
+          fi
+          VERSION=$(tflint --version)
+          echo "tflint version: $VERSION"
+          echo "PASS: tflint is installed and runnable"
