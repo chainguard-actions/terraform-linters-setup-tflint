@@ -22,13 +22,17 @@ jobs:
           tflint_version: v0.50.3
           checksums: ${{ steps.get-checksum.outputs.checksum }}
 
-      - name: Assert tflint is installed and version matches
+      - name: Assert tflint is installed
         run: |
-          echo "Checking tflint version..."
+          echo "Checking tflint is available..."
+          if ! command -v tflint &>/dev/null; then
+            echo "FAIL: tflint not found in PATH"
+            exit 1
+          fi
           VERSION=$(tflint --version)
-          echo "tflint version output: $VERSION"
+          echo "tflint version: $VERSION"
           if ! echo "$VERSION" | grep -q "0.50.3"; then
-            echo "FAIL: expected tflint v0.50.3 but got: $VERSION"
+            echo "FAIL: expected version 0.50.3 but got: $VERSION"
             exit 1
           fi
           echo "PASS: tflint v0.50.3 installed successfully with checksum verification"
