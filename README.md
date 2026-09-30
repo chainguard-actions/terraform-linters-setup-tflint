@@ -20,6 +20,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 | v6.3 | [`v6.3`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.3) | [`6e1e064`](https://github.com/terraform-linters/setup-tflint/commit/6e1e0642c0289bd619021bf6b34e3c08ed1e005a) |
 | v6.3.0 | [`v6.3.0`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.3.0) | [`6e1e064`](https://github.com/terraform-linters/setup-tflint/commit/6e1e0642c0289bd619021bf6b34e3c08ed1e005a) |
 | v6.3.1 | [`v6.3.1`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.3.1) | [`1cf010d`](https://github.com/terraform-linters/setup-tflint/commit/1cf010d3c7aef302051ccdb68c14c5dc2efa34ef) |
+| v6.3.2 | [`v6.3.2`](https://github.com/chainguard-actions/terraform-linters-setup-tflint/tree/v6.3.2) | [`6ffdbaa`](https://github.com/terraform-linters/setup-tflint/commit/6ffdbaa3be476b3431f7275c26966ef32ff60337) |
 
 ## Privacy
 
