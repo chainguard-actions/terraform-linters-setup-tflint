@@ -1,0 +1,49 @@
+name: Test specific version installation
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: setup
+        uses: .
+        with:
+          tflint_version: v0.50.3
+
+      - name: Assert tflint-version output matches requested version
+        env:
+          TFLINT_VERSION: ${{ steps.setup.outputs.tflint-version }}
+        run: |
+          echo "tflint-version: $TFLINT_VERSION"
+          if [ -z "$TFLINT_VERSION" ]; then
+            echo "FAIL: tflint-version output is empty"
+            exit 1
+          fi
+          # The output version should contain 0.50.3
+          if echo "$TFLINT_VERSION" | grep -qF "0.50.3"; then
+            echo "PASS: tflint-version contains '0.50.3'"
+          else
+            echo "FAIL: expected version containing '0.50.3', got '$TFLINT_VERSION'"
+            exit 1
+          fi
+
+      - name: Assert tflint binary is on PATH
+        run: |
+          if ! command -v tflint >/dev/null 2>&1; then
+            echo "FAIL: tflint not found on PATH"
+            exit 1
+          fi
+          echo "PASS: tflint found at $(command -v tflint)"
+
+      - name: Assert tflint reports the correct version
+        run: |
+          ACTUAL=$(tflint --version 2>&1 | head -1)
+          echo "tflint --version: $ACTUAL"
+          if echo "$ACTUAL" | grep -qF "0.50.3"; then
+            echo "PASS: tflint reports version 0.50.3"
+          else
+            echo "FAIL: expected version 0.50.3 in output, got: $ACTUAL"
+            exit 1
+          fi

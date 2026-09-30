@@ -1,0 +1,56 @@
+name: Test checksums input verification
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Fetch official checksum for tflint v0.50.3 linux_amd64
+        id: fetch-checksum
+        run: |
+          CHECKSUMS_URL="https://github.com/terraform-linters/tflint/releases/download/v0.50.3/checksums.txt"
+          CHECKSUM=$(curl -sfL "$CHECKSUMS_URL" | grep "tflint_linux_amd64.zip" | awk '{print $1}')
+          echo "Fetched checksum: $CHECKSUM"
+          if [ -z "$CHECKSUM" ]; then
+            echo "FAIL: could not fetch checksum from $CHECKSUMS_URL"
+            exit 1
+          fi
+          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
+
+      - id: setup
+        uses: .
+        with:
+          tflint_version: v0.50.3
+          checksums: ${{ steps.fetch-checksum.outputs.checksum }}
+
+      - name: Assert tflint-version output is set
+        env:
+          TFLINT_VERSION: ${{ steps.setup.outputs.tflint-version }}
+        run: |
+          echo "tflint-version: $TFLINT_VERSION"
+          if [ -z "$TFLINT_VERSION" ]; then
+            echo "FAIL: tflint-version output is empty"
+            exit 1
+          fi
+          echo "PASS: tflint-version is '$TFLINT_VERSION'"
+
+      - name: Assert tflint binary is on PATH
+        run: |
+          if ! command -v tflint >/dev/null 2>&1; then
+            echo "FAIL: tflint not found on PATH"
+            exit 1
+          fi
+          echo "PASS: tflint found at $(command -v tflint)"
+
+      - name: Assert tflint reports the correct version
+        run: |
+          ACTUAL=$(tflint --version 2>&1 | head -1)
+          echo "tflint --version: $ACTUAL"
+          if echo "$ACTUAL" | grep -qF "0.50.3"; then
+            echo "PASS: tflint reports version 0.50.3"
+          else
+            echo "FAIL: expected version 0.50.3 in output, got: $ACTUAL"
+            exit 1
+          fi
