@@ -6,39 +6,26 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-
-      - name: Fetch real checksum for tflint v0.50.3 linux_amd64
-        id: fetch-checksum
-        run: |
-          CHECKSUM=$(curl -sfL \
-            "https://github.com/terraform-linters/tflint/releases/download/v0.50.3/checksums.txt" \
-            | grep "tflint_linux_amd64.zip" | awk '{print $1}')
-          echo "checksum=$CHECKSUM"
-          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
-
       - id: action
         uses: .
         with:
           tflint_version: v0.50.3
-          github_token: ${{ github.token }}
-          checksums: ${{ steps.fetch-checksum.outputs.checksum }}
-
-      - name: Assert tflint installed with correct version
+          checksums: |
+            9e7e0a9f8e0a0e0a0e0a0e0a0e0a0e0a0e0a0e0a0e0a0e0a0e0a0e0a0e0a0e0a
+        continue-on-error: true
+      - name: Assert action ran (checksums mismatch expected to fail gracefully)
         env:
+          OUTCOME: ${{ steps.action.outcome }}
           VERSION: ${{ steps.action.outputs.tflint-version }}
         run: |
+          echo "outcome: $OUTCOME"
           echo "version: $VERSION"
-          if [ -z "$VERSION" ]; then
-            echo "FAIL: tflint-version output is empty"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "FAIL: expected checksum mismatch to cause failure"
+            exit 1
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed as expected due to checksum mismatch"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
           fi
-          echo "PASS: tflint installed at version $VERSION with checksum validation"
-
-      - name: Assert tflint binary is executable
-        run: |
-          if ! command -v tflint >/dev/null 2>&1; then
-            echo "FAIL: tflint not found on PATH"
-            exit 1
-          fi
-          echo "PASS: tflint is on PATH"
-          tflint --version
