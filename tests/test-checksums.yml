@@ -1,4 +1,4 @@
-name: Test checksums input verification
+name: Test checksums input - wrong checksum causes failure
 on:
   workflow_dispatch:
 jobs:
@@ -7,50 +7,26 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Fetch official checksum for tflint v0.50.3 linux_amd64
-        id: fetch-checksum
-        run: |
-          CHECKSUMS_URL="https://github.com/terraform-linters/tflint/releases/download/v0.50.3/checksums.txt"
-          CHECKSUM=$(curl -sfL "$CHECKSUMS_URL" | grep "tflint_linux_amd64.zip" | awk '{print $1}')
-          echo "Fetched checksum: $CHECKSUM"
-          if [ -z "$CHECKSUM" ]; then
-            echo "FAIL: could not fetch checksum from $CHECKSUMS_URL"
-            exit 1
-          fi
-          echo "checksum=$CHECKSUM" >> "$GITHUB_OUTPUT"
-
-      - id: setup
+      - name: Assert action fails when given a wrong checksum
+        id: setup-wrong-checksum
         uses: .
+        continue-on-error: true
         with:
           tflint_version: v0.50.3
-          checksums: ${{ steps.fetch-checksum.outputs.checksum }}
+          checksums: |
+            0000000000000000000000000000000000000000000000000000000000000000
 
-      - name: Assert tflint-version output is set
+      - name: Assert wrong checksum caused failure
         env:
-          TFLINT_VERSION: ${{ steps.setup.outputs.tflint-version }}
+          OUTCOME: ${{ steps.setup-wrong-checksum.outcome }}
         run: |
-          echo "tflint-version: $TFLINT_VERSION"
-          if [ -z "$TFLINT_VERSION" ]; then
-            echo "FAIL: tflint-version output is empty"
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action correctly failed with a wrong checksum"
+          elif [ "$OUTCOME" = "success" ]; then
+            echo "FAIL: action should have failed with a wrong checksum but succeeded"
             exit 1
-          fi
-          echo "PASS: tflint-version is '$TFLINT_VERSION'"
-
-      - name: Assert tflint binary is on PATH
-        run: |
-          if ! command -v tflint >/dev/null 2>&1; then
-            echo "FAIL: tflint not found on PATH"
-            exit 1
-          fi
-          echo "PASS: tflint found at $(command -v tflint)"
-
-      - name: Assert tflint reports the correct version
-        run: |
-          ACTUAL=$(tflint --version 2>&1 | head -1)
-          echo "tflint --version: $ACTUAL"
-          if echo "$ACTUAL" | grep -qF "0.50.3"; then
-            echo "PASS: tflint reports version 0.50.3"
           else
-            echo "FAIL: expected version 0.50.3 in output, got: $ACTUAL"
+            echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
           fi

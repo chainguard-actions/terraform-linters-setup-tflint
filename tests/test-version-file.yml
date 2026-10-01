@@ -1,4 +1,4 @@
-name: Test version file input
+name: Test tflint_version_file input
 on:
   workflow_dispatch:
 jobs:
@@ -7,15 +7,10 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Create .tool-versions file with tflint version
-        run: |
-          echo "tflint 0.50.3" > "$GITHUB_WORKSPACE/.tool-versions"
-          cat "$GITHUB_WORKSPACE/.tool-versions"
-
       - id: setup
         uses: .
         with:
-          tflint_version_file: .tool-versions
+          tflint_version_file: hardened/tests/fixtures/tool-versions
 
       - name: Assert tflint-version output is set
         env:
@@ -41,7 +36,7 @@ jobs:
           ACTUAL=$(tflint --version 2>&1 | head -1)
           echo "tflint --version: $ACTUAL"
           if echo "$ACTUAL" | grep -qF "0.50.3"; then
-            echo "PASS: tflint reports version 0.50.3 (from .tool-versions)"
+            echo "PASS: tflint reports version 0.50.3 (from version file)"
           else
             echo "FAIL: expected version 0.50.3 in output, got: $ACTUAL"
             exit 1
